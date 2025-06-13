@@ -148,6 +148,31 @@ class ActionCable::SubscriptionAdapter::SolidCableTest < ActionCable::TestCase
     end
   end
 
+  test "resets last_id when reconnecting" do
+    @tx_adapter.broadcast("channel", "1")
+    @tx_adapter.broadcast("channel", "2")
+
+    subscribe_as_queue("channel") do |queue|
+      assert_empty queue
+
+      @tx_adapter.broadcast("channel", "3")
+      @tx_adapter.broadcast("channel", "4")
+
+      assert_equal "3", queue.pop
+      assert_equal "4", queue.pop
+    end
+
+    @tx_adapter.broadcast("channel", "5")
+    @tx_adapter.broadcast("channel", "6")
+    @tx_adapter.broadcast("channel", "7")
+    @tx_adapter.broadcast("channel", "8")
+    @tx_adapter.broadcast("channel", "9")
+
+    subscribe_as_queue("channel") do |queue|
+      assert_empty queue
+    end
+  end
+
   private
     def cable_config
       { adapter: "solid_cable", message_retention: "1.second",

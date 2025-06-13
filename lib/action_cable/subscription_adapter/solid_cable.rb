@@ -89,6 +89,7 @@ module ActionCable
           end
 
           def add_channel(channel, on_success)
+            reset_last_id! if channels.empty?
             channels.add(channel)
             event_loop.post(&on_success) if on_success
           end
@@ -107,6 +108,10 @@ module ActionCable
 
             def last_id
               @last_id ||= ::SolidCable::Message.maximum(:id) || 0
+            end
+
+            def reset_last_id!
+              @last_id = nil
             end
 
             def channels
